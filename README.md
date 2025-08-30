@@ -11,6 +11,13 @@ A modern AI-powered medical chatbot using Retrieval-Augmented Generation (RAG) w
 - **Modern Web UI**: Responsive, user-friendly frontend with Markdown support.
 
 ---
+## Tech stack
+- **Frontend**: HTML, CSS, JavaScript
+- **Backend**: Fastapi
+- **Vector database**: Pinecone
+- **LLM**: Google Gemini 2.5 Flash
+
+
 
 ## Demo
 
