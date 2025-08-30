@@ -1,4 +1,3 @@
-# medical_chatbot.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -14,12 +13,15 @@ from langchain_pinecone import PineconeVectorStore
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
-from langchain.schema import Document
+#from langchain.schema import Document
 
 # Pinecone
 from pinecone import Pinecone
-import logging
 
+
+
+import logging
+import torch
 # Load environment variables
 load_dotenv()
 
@@ -64,11 +66,11 @@ llm = None
 qa_chain = None
 
 def get_optimal_device():
-    """Detect and return the optimal device for embeddings"""
+    """Detect and return the optimal device for embeddings
+      (GPU if available and working, otherwise CPU)
+    """
     try:
-        import torch
         if torch.cuda.is_available():
-            # Check if CUDA is actually working
             try:
                 torch.cuda.current_device()
                 return "cuda"
@@ -137,7 +139,7 @@ def initialize_components():
         )
         
         logger.info("Setting up QA chain...")
-        # Create custom prompt for medical chatbot
+        # Prompt for medical chatbot
         medical_prompt_template = """
         You are a helpful medical assistant. Use the following pieces of context to answer the user's question about medical topics.
         
