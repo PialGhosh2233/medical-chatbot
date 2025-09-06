@@ -15,3 +15,4 @@ torch
 transformers
 google-generativeai
 langchain-google-genai
+jinja2

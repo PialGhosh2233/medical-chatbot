@@ -1,13 +1,16 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+import uvicorn
 from dotenv import load_dotenv
 
 # LangChain imports
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+#from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -22,6 +25,7 @@ from pinecone import Pinecone
 
 import logging
 import torch
+
 # Load environment variables
 load_dotenv()
 
@@ -36,10 +40,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Initialize templates
+templates = Jinja2Templates(directory="templates")
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -59,7 +69,7 @@ class HealthCheckResponse(BaseModel):
     status: str
     message: str
 
-# Global variables for components
+# Global variables
 embeddings = None
 vectorstore = None
 llm = None
@@ -110,6 +120,8 @@ def initialize_components():
             logger.info("Embeddings initialized with CPU fallback")
         
         logger.info("Connecting to Pinecone...")
+        
+        
         # Connect to Pinecone
         PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
         if not PINECONE_API_KEY:
@@ -126,6 +138,8 @@ def initialize_components():
         )
         
         logger.info("Initializing Gemini LLM...")
+        
+        
         # Initialize Gemini LLM
         GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
         if not GOOGLE_API_KEY:
@@ -139,7 +153,10 @@ def initialize_components():
         )
         
         logger.info("Setting up QA chain...")
-        # Prompt for medical chatbot
+        
+        
+        
+        # Prompt
         medical_prompt_template = """
         You are a helpful medical assistant. Use the following pieces of context to answer the user's question about medical topics.
         
@@ -148,7 +165,6 @@ def initialize_components():
         - Always recommend consulting healthcare professionals for medical advice
         - Be clear about limitations and when professional consultation is needed
         - If you don't know something, say so clearly
-        - Avoid giving specific diagnostic or treatment recommendations
         
         Context: {context}
         
@@ -233,17 +249,9 @@ async def chat_with_bot(request: ChatRequest):
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
 
 @app.get("/")
-async def root():
-    """Root endpoint with API information"""
-    return {
-        "message": "Medical Chatbot API",
-        "version": "1.0.0",
-        "endpoints": {
-            "health": "/health",
-            "chat": "/chat",
-            "docs": "/docs"
-        }
-    }
+async def root(request: Request):
+    """Serve the frontend page"""
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # Additional utility endpoints
 #@app.post("/add_document")
@@ -278,15 +286,11 @@ async def root():
 #        raise HTTPException(status_code=500, detail=f"Error adding document: {str(e)}")
 
 if __name__ == "__main__":
-    import uvicorn
-    
-    # Set environment variables if not set
     if not os.getenv("PINECONE_API_KEY"):
         os.environ["PINECONE_API_KEY"] = "pcsk_4bJoVS_RFnJwCjpEsJ6PcK5XArBJzXNMC1nTGRV9Z1YWrVHB6o1mNbZLSEZpL7APMGmTSn"
     if not os.getenv("PINECONE_ENV"):
         os.environ["PINECONE_ENV"] = "us-east-1"
     
-    # You'll need to set your Google API key
     if not os.getenv("GOOGLE_API_KEY"):
         print("Warning: GOOGLE_API_KEY not set. Please set it in your environment or .env file")
     
