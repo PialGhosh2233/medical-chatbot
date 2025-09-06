@@ -55,7 +55,7 @@ GOOGLE_API_KEY=your-google-api-key
 
 ### 4. Run the Backend
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload
 ```
 
 ### 5. Open the Frontend
