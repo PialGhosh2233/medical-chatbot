@@ -74,7 +74,11 @@ Open `frontend.html` in your browser. The frontend connects to `http://localhost
 ```
 medical-chatbot/
 │   main.py            # FastAPI backend
-│   frontend.html      # Web UI
+│─── templates/
+│       index.html     # Web UI
+│─── static/
+│       script.js      # javascript
+│       style.css      # css
 │   requirements.txt   # Python dependencies
 |   README.md
 └── 
