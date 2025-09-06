@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8000'; // to deploy this application to production, you would change this URL to the actual server's domain name.
 let conversationId = null;
 
 const chatMessages = document.getElementById('chatMessages');
